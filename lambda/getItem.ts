@@ -1,3 +1,8 @@
+import { DynamoDB } from "aws-sdk";
+
+const docClient = new DynamoDB.DocumentClient();
+const TABLE_NAME = process.env.TABLE_NAME!;
+
 export const handler = async (event: any) => {
   try {
     const id = event.pathParameters?.id;
@@ -9,12 +14,22 @@ export const handler = async (event: any) => {
       };
     }
 
-    // Simulate retrieval (DynamoDB will be connected later)
+    const data = await docClient
+      .get({ TableName: TABLE_NAME, Key: { id } })
+      .promise();
+
+    if (!data.Item) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: "Item not found" }),
+      };
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: 'Item retrieved successfully',
-        item: { id, title: 'Item ' + id },
+        item: JSON.stringify(data.Item),
       }),
     };
   } catch (error) {

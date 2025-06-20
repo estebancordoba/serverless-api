@@ -1,3 +1,9 @@
+import { DynamoDB } from "aws-sdk";
+import { v4 as uuidv4 } from "uuid";
+
+const docClient = new DynamoDB.DocumentClient();
+const TABLE_NAME = process.env.TABLE_NAME!;
+
 export const handler = async (event: any) => {
     try {
       const body = JSON.parse(event.body || '{}');
@@ -9,12 +15,17 @@ export const handler = async (event: any) => {
         };
       }
 
-      // Simulate creation (DynamoDB will be connected later)
+      const newItem = { id: uuidv4(), title: body.title };
+
+      await docClient
+        .put({ TableName: TABLE_NAME, Item: newItem })
+        .promise();
+
       return {
         statusCode: 201,
         body: JSON.stringify({
           message: 'Item created successfully',
-          item: { id: '123', title: body.title },
+          item: newItem
         }),
       };
     } catch (error) {
