@@ -36,9 +36,11 @@ The project includes comprehensive type definitions for:
 
 ---
 
-## Continuous Integration (CI)
+## Continuous Integration & Deployment (CI/CD)
 
-This project uses **GitHub Actions** for CI/CD. Every push or pull request to the `main` branch will automatically:
+This project uses **GitHub Actions** for automated CI/CD. The workflow is defined in `.github/workflows/ci-cd.yml`.
+
+### On Pull Requests
 
 1. Checkout the repository
 2. Set up Node.js 18
@@ -46,7 +48,19 @@ This project uses **GitHub Actions** for CI/CD. Every push or pull request to th
 4. Build the project (`npm run build:all`)
 5. Run all tests (`npm test`)
 
-You can find the workflow definition in `.github/workflows/ci.yml`.
+### On Push to Main (Production Deployment)
+
+1. Execute all CI steps above
+2. Configure AWS credentials
+3. Deploy to production (`npm run deploy:prod`)
+4. Get the API URL from CloudFormation outputs
+5. Comment deployment information on the commit
+
+### Environment Protection
+
+The production deployment requires approval if environment protection rules are configured in GitHub.
+
+📖 **For detailed setup instructions, see [Deployment Configuration Guide](docs/DEPLOYMENT.md)**
 
 ---
 
