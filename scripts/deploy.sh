@@ -8,4 +8,4 @@ fi
 
 npm run build:all
 cdk bootstrap
-cdk deploy --context env="$1"
+cdk deploy --context env="$1" --require-approval never
