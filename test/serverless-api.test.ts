@@ -55,7 +55,7 @@ describe('ServerlessApiStack', () => {
 
   test('Lambda Function has correct runtime and handler', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
-      Runtime: 'nodejs18.x',
+      Runtime: 'nodejs20.x',
       Handler: 'hello.handler'
     });
   });

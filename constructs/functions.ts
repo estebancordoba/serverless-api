@@ -20,8 +20,8 @@ export class Functions extends Construct {
     super(scope, id);
 
     const functionParams = {
-      // Specifies Node.js 18.x as the runtime environment
-      runtime: lambda.Runtime.NODEJS_18_X,
+      // Specifies Node.js 20.x as the runtime environment
+      runtime: lambda.Runtime.NODEJS_20_X,
       // Loads the function code from the dist/lambda-bundled directory (bundled with esbuild)
       code: lambda.Code.fromAsset('dist/lambda-bundled'),
       // Defines the environment variables

@@ -43,7 +43,7 @@ This project uses **GitHub Actions** for automated CI/CD. The workflow is define
 ### On Pull Requests
 
 1. Checkout the repository
-2. Set up Node.js 18
+2. Set up Node.js 20
 3. Install dependencies (`npm ci`)
 4. Build the project (`npm run build:all`)
 5. Run all tests (`npm test`)

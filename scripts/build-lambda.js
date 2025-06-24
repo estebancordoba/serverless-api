@@ -20,7 +20,7 @@ const buildConfig = {
   entryPoints: lambdaFiles,
   bundle: true,
   platform: 'node',
-  target: 'node18',
+  target: 'node20',
   format: 'cjs',
   outdir: distDir,
   external: ['aws-sdk'], // Exclude aws-sdk since it's available in the Lambda runtime
