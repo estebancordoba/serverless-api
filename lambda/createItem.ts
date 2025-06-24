@@ -1,7 +1,9 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 
-const docClient = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler = async (event: any) => {
@@ -17,9 +19,10 @@ export const handler = async (event: any) => {
 
       const newItem = { id: uuidv4(), title: body.title };
 
-      await docClient
-        .put({ TableName: TABLE_NAME, Item: newItem })
-        .promise();
+      await docClient.send(new PutCommand({
+        TableName: TABLE_NAME,
+        Item: newItem
+      }));
 
       return {
         statusCode: 201,

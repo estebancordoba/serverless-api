@@ -1,6 +1,8 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
-const docClient = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler = async (event: any) => {
@@ -24,13 +26,13 @@ export const handler = async (event: any) => {
 
     try {
       // Use ConditionalExpression to verify that the item exists before updating it
-      await docClient.update({
+      await docClient.send(new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { id },
         UpdateExpression: 'SET title = :title',
         ExpressionAttributeValues: { ':title': body.title },
         ConditionExpression: 'attribute_exists(id)'
-      }).promise();
+      }));
 
       return {
         statusCode: 200,
@@ -41,7 +43,7 @@ export const handler = async (event: any) => {
       };
     } catch (updateError: any) {
       // If the error is ConditionalCheckFailedException, it means that the item did not exist
-      if (updateError.code === 'ConditionalCheckFailedException') {
+      if (updateError.name === 'ConditionalCheckFailedException') {
         return {
           statusCode: 404,
           body: JSON.stringify({

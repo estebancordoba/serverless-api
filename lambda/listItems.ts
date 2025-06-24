@@ -1,11 +1,13 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
-const docClient = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler = async (event: any) => {
   try {
-    const data = await docClient.scan({ TableName: TABLE_NAME }).promise();
+    const data = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
     return {
       statusCode: 200,
       body: JSON.stringify(data.Items),

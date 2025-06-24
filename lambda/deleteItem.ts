@@ -1,6 +1,8 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
-const docClient = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler = async (event: any) => {
@@ -16,11 +18,11 @@ export const handler = async (event: any) => {
 
     try {
       // Use ConditionalExpression to verify that the item exists before deleting it
-      await docClient.delete({
+      await docClient.send(new DeleteCommand({
         TableName: TABLE_NAME,
         Key: { id },
         ConditionExpression: 'attribute_exists(id)'
-      }).promise();
+      }));
 
       return {
         statusCode: 200,
@@ -31,7 +33,7 @@ export const handler = async (event: any) => {
       };
     } catch (deleteError: any) {
       // If the error is ConditionalCheckFailedException, it means that the item did not exist
-      if (deleteError.code === 'ConditionalCheckFailedException') {
+      if (deleteError.name === 'ConditionalCheckFailedException') {
         return {
           statusCode: 404,
           body: JSON.stringify({

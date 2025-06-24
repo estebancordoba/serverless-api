@@ -22,8 +22,8 @@ export class Functions extends Construct {
     const functionParams = {
       // Specifies Node.js 18.x as the runtime environment
       runtime: lambda.Runtime.NODEJS_18_X,
-      // Loads the function code from the lambda directory
-      code: lambda.Code.fromAsset('lambda'),
+      // Loads the function code from the dist/lambda-bundled directory (bundled with esbuild)
+      code: lambda.Code.fromAsset('dist/lambda-bundled'),
       // Defines the environment variables
       environment: {
         TABLE_NAME: props.table.tableName,

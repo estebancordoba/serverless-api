@@ -1,6 +1,8 @@
-import { DynamoDB } from "aws-sdk";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
-const docClient = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler = async (event: any) => {
@@ -14,9 +16,10 @@ export const handler = async (event: any) => {
       };
     }
 
-    const data = await docClient
-      .get({ TableName: TABLE_NAME, Key: { id } })
-      .promise();
+    const data = await docClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id }
+    }));
 
     if (!data.Item) {
       return {
@@ -29,7 +32,7 @@ export const handler = async (event: any) => {
       statusCode: 200,
       body: JSON.stringify({
         message: 'Item retrieved successfully',
-        item: JSON.stringify(data.Item),
+        item: data.Item,
       }),
     };
   } catch (error) {

@@ -28,11 +28,22 @@ serverless-api/
 │   ├── listItems.ts               # Lambda function for listing items
 │   ├── updateItem.ts              # Lambda function for updating items
 │   ├── deleteItem.ts              # Lambda function for deleting items
-│   └── package.json               # Lambda functions dependencies
 ├── lib/
 │   └── serverless-api-stack.ts    # Main CDK stack
+├── constructs/
+│   ├── api.ts                     # API Gateway construct
+│   ├── database.ts                # DynamoDB construct
+│   └── functions.ts               # Lambda functions construct
 ├── scripts/
-│   └── deploy.sh                  # Deployment script
+│   ├── deploy.sh                  # Deployment script
+│   └── build-lambda.js            # Lambda bundling script (with esbuild)
+├── dist/
+│   ├── bin/                       # Compiled CDK entry point
+│   ├── constructs/                # Compiled constructs
+│   ├── lambda/                    # Compiled Lambda JS from TypeScript
+│   ├── lambda-bundled/            # Bundled Lambda functions (for deployment)
+│   ├── lib/                       # Compiled CDK stack
+│   └── test/                      # Compiled tests
 ├── test/
 │   └── serverless-api.test.ts     # Project tests
 ├── package.json                   # Project dependencies
@@ -40,6 +51,46 @@ serverless-api/
 ├── cdk.json                       # CDK configuration
 └── README.md                      # This file
 ```
+
+---
+
+## Build & Deployment Process
+
+1. **TypeScript Compilation:**
+   - Run `npm run build` to compile all TypeScript files to the `dist/` directory.
+   - All `.js` and `.d.ts` files are generated inside `dist/` (not in the source folders).
+
+2. **Lambda Bundling:**
+   - Run `npm run build:lambda` to bundle all Lambda functions from `dist/lambda/` into `dist/lambda-bundled/` using [esbuild](https://esbuild.github.io/).
+   - This ensures all dependencies (except `aws-sdk`) are included for AWS Lambda.
+
+3. **Full Build:**
+   - Run `npm run build:all` to execute both steps above.
+
+4. **Deployment:**
+   - The CDK stack is configured to deploy Lambda code from `dist/lambda-bundled/`.
+   - Use `npm run deploy:dev` or `npm run deploy:prod` to deploy to AWS.
+
+---
+
+## Available Scripts
+
+- `npm run build` - Compiles TypeScript project to `dist/`
+- `npm run build:lambda` - Bundles Lambda functions from `dist/lambda/` to `dist/lambda-bundled/`
+- `npm run build:all` - Runs both build steps above
+- `npm run watch` - Builds in watch mode
+- `npm run test` - Runs the tests
+- `npm run cdk` - Runs CDK commands
+- `npm run deploy:dev` - Deploys to development environment
+- `npm run deploy:prod` - Deploys to production environment
+
+---
+
+## Best Practices
+
+- **No generated files in source folders:** All compiled and bundled files are placed in `dist/` to keep the repository clean.
+- **Lambda bundling:** The script `scripts/build-lambda.js` (included in the repo) uses esbuild to bundle Lambda functions with all their dependencies.
+- **.gitignore:** The `dist/` directory is ignored by git, but scripts in `scripts/` are always included.
 
 ---
 
@@ -81,109 +132,6 @@ All items endpoints are under the `/items` resource.
     "title": "My Important Task"
   }
 }
-```
-
----
-
-## Infrastructure Deployment
-
-### Prerequisites
-
-1. **AWS CLI configured** with valid credentials:
-
-   ```bash
-   aws configure
-   ```
-
-2. **Node.js** (version 18 or higher)
-
-3. **AWS CDK CLI** installed globally:
-
-   ```bash
-   npm install -g aws-cdk
-   ```
-
-### Installation and Deployment
-
-1. Clone the repository:
-
-   ```bash
-   git clone <repository-url>
-   cd serverless-api
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Build the project:
-
-   ```bash
-   npm run build
-   ```
-
-4. Deploy the infrastructure:
-
-   **For development:**
-
-   ```bash
-   npm run deploy:dev
-   ```
-
-   **For production:**
-
-   ```bash
-   npm run deploy:prod
-   ```
-
-   **Or manually:**
-
-   ```bash
-   ./scripts/deploy.sh dev    # For development
-   ./scripts/deploy.sh prod   # For production
-   ```
-
-### Available Scripts
-
-- `npm run build` - Builds the TypeScript project
-- `npm run watch` - Builds in watch mode
-- `npm run test` - Runs the tests
-- `npm run cdk` - Runs CDK commands
-- `npm run deploy:dev` - Deploys to development environment
-- `npm run deploy:prod` - Deploys to production environment
-
----
-
-## Testing
-
-Once deployed, you can use tools like **Postman** or **curl** to test the API.
-
-### Example with curl
-
-```bash
-# Welcome endpoint
-curl https://<API_URL>/
-
-# Create an item
-curl -X POST https://<API_URL>/items \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Important task"}'
-
-# List all items
-curl https://<API_URL>/items
-
-# Get a specific item
-curl https://<API_URL>/items/<item-id>
-
-# Update an item
-curl -X PUT https://<API_URL>/items/<item-id> \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Updated task"}'
-
-# Delete an item
-curl -X DELETE https://<API_URL>/items/<item-id>
 ```
 
 ---
