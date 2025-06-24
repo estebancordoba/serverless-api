@@ -153,3 +153,80 @@ Or use CDK:
 ```bash
 cdk rollback
 ```
+
+## Deploy
+
+### Development
+
+```bash
+npm run deploy:dev
+```
+
+### Production
+
+```bash
+npm run deploy:prod
+```
+
+## Destroy Infrastructure
+
+### Using npm scripts (Recommended)
+
+```bash
+# Destroy development environment
+npm run destroy:dev
+
+# Destroy production environment
+npm run destroy:prod
+```
+
+### Using scripts directly
+
+```bash
+# Destroy development environment
+./scripts/destroy.sh dev
+
+# Destroy production environment
+./scripts/destroy.sh prod
+```
+
+### Using AWS CLI directly
+
+```bash
+# Destroy development stack
+aws cloudformation delete-stack --stack-name ServerlessApiStack-dev
+
+# Destroy production stack
+aws cloudformation delete-stack --stack-name ServerlessApiStack-prod
+```
+
+### Using CDK directly
+
+```bash
+# Build first
+npm run build:all
+
+# Destroy development
+cdk destroy --context env=dev --require-approval never
+
+# Destroy production
+cdk destroy --context env=prod --require-approval never
+```
+
+## Important Notes
+
+- **Production destroy requires confirmation** - The script will ask for confirmation before destroying production infrastructure
+- **All data will be lost** - Destroying will remove all DynamoDB tables and their data
+- **API endpoints will be unavailable** - All Lambda functions and API Gateway endpoints will be removed
+- **Costs will stop** - No more AWS charges for the destroyed resources
+
+## Destroy Troubleshooting
+
+If you get permission errors, ensure your AWS credentials have the necessary permissions:
+
+- CloudFormation:DeleteStack
+- DynamoDB:DeleteTable
+- Lambda:DeleteFunction
+- ApiGateway:DeleteRestApi
+- IAM:DeleteRole
+- Logs:DeleteLogGroup

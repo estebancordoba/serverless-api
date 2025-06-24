@@ -16,7 +16,9 @@
     "cdk": "cdk",
     "deploy:dev": "scripts/deploy.sh dev",
     "deploy:prod": "scripts/deploy.sh prod",
-    "deploy:ci": "scripts/deploy-ci.sh"
+    "deploy:ci": "scripts/deploy-ci.sh",
+    "destroy:dev": "scripts/destroy.sh dev",
+    "destroy:prod": "scripts/destroy.sh prod"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
