@@ -15,6 +15,20 @@ This project is a fully serverless RESTful API built on AWS. It uses **TypeScrip
 
 ---
 
+## Continuous Integration (CI)
+
+This project uses **GitHub Actions** for CI/CD. Every push or pull request to the `main` branch will automatically:
+
+1. Checkout the repository
+2. Set up Node.js 18
+3. Install dependencies (`npm ci`)
+4. Build the project (`npm run build:all`)
+5. Run all tests (`npm test`)
+
+You can find the workflow definition in `.github/workflows/ci.yml`.
+
+---
+
 ## Project Structure
 
 ```bash
