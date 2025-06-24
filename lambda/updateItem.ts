@@ -1,21 +1,29 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { 
+  APIGatewayProxyEvent, 
+  APIGatewayProxyResponse, 
+  UpdateItemRequest,
+  UpdateItemResponse,
+  Item 
+} from "../types";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
-export const handler = async (event: any) => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResponse> => {
   try {
     const id = event.pathParameters?.id;
-    const body = JSON.parse(event.body || '{}');
 
     if (!id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing "id" in path parameters' }),
+        body: JSON.stringify({ message: 'Missing "id" parameter' }),
       };
     }
+
+    const body: UpdateItemRequest = JSON.parse(event.body || '{}');
 
     if (!body || !body.title) {
       return {
@@ -24,37 +32,41 @@ export const handler = async (event: any) => {
       };
     }
 
-    try {
-      // Use ConditionalExpression to verify that the item exists before updating it
-      await docClient.send(new UpdateCommand({
-        TableName: TABLE_NAME,
-        Key: { id },
-        UpdateExpression: 'SET title = :title',
-        ExpressionAttributeValues: { ':title': body.title },
-        ConditionExpression: 'attribute_exists(id)'
-      }));
+    // First, check if the item exists
+    const getResult = await docClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id }
+    }));
 
+    if (!getResult.Item) {
       return {
-        statusCode: 200,
-        body: JSON.stringify({
-          message: 'Item updated successfully',
-          id,
-        }),
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Item not found' }),
       };
-    } catch (updateError: any) {
-      // If the error is ConditionalCheckFailedException, it means that the item did not exist
-      if (updateError.name === 'ConditionalCheckFailedException') {
-        return {
-          statusCode: 404,
-          body: JSON.stringify({
-            message: 'Item not found',
-            id,
-          }),
-        };
-      }
-      // If it's another error, we throw it so it's handled in the general catch
-      throw updateError;
     }
+
+    // Update the item
+    const updateResult = await docClient.send(new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { id },
+      UpdateExpression: 'SET title = :title, updatedAt = :updatedAt',
+      ExpressionAttributeValues: {
+        ':title': body.title,
+        ':updatedAt': new Date().toISOString()
+      },
+      ReturnValues: 'ALL_NEW'
+    }));
+
+    const updatedItem: Item = updateResult.Attributes as Item;
+    const response: UpdateItemResponse = {
+      message: 'Item updated successfully',
+      item: updatedItem
+    };
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(response),
+    };
   } catch (error) {
     console.error('Error updating item:', error);
     return {

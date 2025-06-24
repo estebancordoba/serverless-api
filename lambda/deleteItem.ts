@@ -1,50 +1,53 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { 
+  APIGatewayProxyEvent, 
+  APIGatewayProxyResponse, 
+  DeleteItemResponse 
+} from "../types";
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
-export const handler = async (event: any) => {
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResponse> => {
   try {
     const id = event.pathParameters?.id;
 
     if (!id) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: 'Missing "id" in path parameters' }),
+        body: JSON.stringify({ message: 'Missing "id" parameter' }),
       };
     }
 
-    try {
-      // Use ConditionalExpression to verify that the item exists before deleting it
-      await docClient.send(new DeleteCommand({
-        TableName: TABLE_NAME,
-        Key: { id },
-        ConditionExpression: 'attribute_exists(id)'
-      }));
+    // First, check if the item exists
+    const getResult = await docClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { id }
+    }));
 
+    if (!getResult.Item) {
       return {
-        statusCode: 200,
-        body: JSON.stringify({
-          message: 'Item deleted successfully',
-          id,
-        }),
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Item not found' }),
       };
-    } catch (deleteError: any) {
-      // If the error is ConditionalCheckFailedException, it means that the item did not exist
-      if (deleteError.name === 'ConditionalCheckFailedException') {
-        return {
-          statusCode: 404,
-          body: JSON.stringify({
-            message: 'Item not found',
-            id,
-          }),
-        };
-      }
-      // If it's another error, we throw it so it's handled in the general catch
-      throw deleteError;
     }
+
+    // Delete the item
+    await docClient.send(new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { id }
+    }));
+
+    const response: DeleteItemResponse = {
+      message: 'Item deleted successfully'
+    };
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(response),
+    };
   } catch (error) {
     console.error('Error deleting item:', error);
     return {

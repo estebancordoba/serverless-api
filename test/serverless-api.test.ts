@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Template, Match } from 'aws-cdk-lib/assertions';
 import { ServerlessApiStack } from '../lib/serverless-api-stack';
+import { CloudFormationTemplate, IAMPolicy } from '../types';
 
 describe('ServerlessApiStack', () => {
   let template: Template;
@@ -81,8 +82,8 @@ describe('ServerlessApiStack', () => {
   });
 
   test('DynamoDB permissions are granted to Lambda functions', () => {
-    const resources = template.toJSON().Resources;
-    const policies = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Policy');
+    const resources = template.toJSON().Resources as Record<string, CloudFormationTemplate['Resources'][string]>;
+    const policies = Object.values(resources).filter((r): r is IAMPolicy => r.Type === 'AWS::IAM::Policy');
     const requiredActions = [
       'dynamodb:GetItem',
       'dynamodb:PutItem',
@@ -91,11 +92,11 @@ describe('ServerlessApiStack', () => {
       'dynamodb:Query',
       'dynamodb:Scan'
     ];
-    const hasCrudPolicy = policies.some((policy: any) => {
+    const hasCrudPolicy = policies.some((policy) => {
       const statements = Array.isArray(policy.Properties.PolicyDocument.Statement)
         ? policy.Properties.PolicyDocument.Statement
         : [policy.Properties.PolicyDocument.Statement];
-      return statements.some((stmt: any) => {
+      return statements.some((stmt) => {
         if (stmt.Effect !== 'Allow' || !Array.isArray(stmt.Action)) return false;
         return requiredActions.every(action => stmt.Action.includes(action));
       });

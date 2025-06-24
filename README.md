@@ -15,6 +15,27 @@ This project is a fully serverless RESTful API built on AWS. It uses **TypeScrip
 
 ---
 
+## TypeScript Best Practices
+
+This project follows TypeScript best practices to ensure type safety and maintainability:
+
+- **Strict Type Checking**: All functions use proper TypeScript types instead of `any`
+- **Shared Types**: Common interfaces are defined in `types/index.ts` for consistency
+- **API Gateway Types**: Proper typing for Lambda event handlers and responses
+- **Error Handling**: Typed error responses and proper error logging
+- **Type Guards**: Used in tests to ensure type safety when working with CloudFormation resources
+
+### Type Definitions
+
+The project includes comprehensive type definitions for:
+
+- AWS Lambda events and responses
+- API request/response bodies
+- DynamoDB item structures
+- CloudFormation resources (for testing)
+
+---
+
 ## Continuous Integration (CI)
 
 This project uses **GitHub Actions** for CI/CD. Every push or pull request to the `main` branch will automatically:
@@ -48,6 +69,8 @@ serverless-api/
 │   ├── api.ts                     # API Gateway construct
 │   ├── database.ts                # DynamoDB construct
 │   └── functions.ts               # Lambda functions construct
+├── types/
+│   └── index.ts                   # Shared TypeScript type definitions
 ├── scripts/
 │   ├── deploy.sh                  # Deployment script
 │   └── build-lambda.js            # Lambda bundling script (with esbuild)
@@ -105,6 +128,7 @@ serverless-api/
 - **No generated files in source folders:** All compiled and bundled files are placed in `dist/` to keep the repository clean.
 - **Lambda bundling:** The script `scripts/build-lambda.js` (included in the repo) uses esbuild to bundle Lambda functions with all their dependencies.
 - **.gitignore:** The `dist/` directory is ignored by git, but scripts in `scripts/` are always included.
+- **Type Safety:** All functions use proper TypeScript types with no `any` usage.
 
 ---
 
@@ -143,7 +167,8 @@ All items endpoints are under the `/items` resource.
   "message": "Item created successfully",
   "item": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "title": "My Important Task"
+    "title": "My Important Task",
+    "createdAt": "2024-01-15T10:30:00.000Z"
   }
 }
 ```
@@ -169,6 +194,7 @@ All items endpoints are under the `/items` resource.
 - **Multi-Environment Support**: Support for development and production
 - **Integrated Logging**: Automatic logs in CloudWatch
 - **Error Handling**: Consistent and structured error responses
+- **Type Safety**: Full TypeScript support with strict type checking
 
 ---
 
